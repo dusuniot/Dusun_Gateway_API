@@ -11,7 +11,7 @@
 
 ### Version V1.0.0:  
 	description :   
-		this is only debug version for ZigBee devices.
+	this is only debug version for ZigBee devices.
 
 ### Version V1.0.1:  
 	description : 
