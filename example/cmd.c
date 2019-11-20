@@ -17,13 +17,20 @@ void do_cmd_exclude(char *argv[], int argc);
 void do_cmd_zinfo(char *argv[], int argc);
 void do_cmd_class_cmd(char *argv[], int argc);
 
+
+void do_cmd_zb_get_atr(char *argv[], int argc);
+void do_cmd_zb_set_atr(char *argv[], int argc);
+void do_cmd_zb_zcl_cmd(char *argv[], int argc);
 static stCmd_t cmds[] = {
 	{"exit",		do_cmd_exit, "exit the programe!"},
 	{"help",		do_cmd_help, "help info"},
-	{"permit",	do_cmd_permit, "permit add device"},
+	{"permit",	do_cmd_permit, "zigbee permit add device"},
+	{"getatr",	do_cmd_zb_get_atr, "zigbee get attr"},
+	{"setatr",  do_cmd_zb_set_atr, "zigbee set attr"},
+	{"zclcmd",	do_cmd_zb_zcl_cmd, "zigbee zcl command"},
 	{"include",	do_cmd_include, "include zwave device"},
 	{"exclude", do_cmd_exclude, "exclude zwave device"},
-	{"zcmd",		do_cmd_class_cmd, "execute class cmd command, cmd <mac> <ep> <class> <buffstr>"},
+	{"zcmd",			do_cmd_class_cmd, "zwaveexecute class cmd command, cmd <mac> <ep> <class> <buffstr>"},
 	{"zinfo",		do_cmd_zinfo,		"get zwave netinfo"},
 };
 
@@ -212,9 +219,15 @@ void do_cmd_class_cmd(char *argv[], int argc) {
 		return;
 	}
 	char *mac	= argv[1];
+#if 0
 	int ep		= atoi(argv[2])&0xff;
 	int	class	= atoi(argv[3])&0xff;
 	int cmd		= atoi(argv[4])&0xff;
+#else
+	int ep;			sscanf(argv[2], "%02X", &ep);
+	int class;	sscanf(argv[3], "%02X", &class);
+	int	cmd;		sscanf(argv[4], "%02X", &cmd);
+#endif
 	char *datastr = argv[5];
 	char data[256];
 
@@ -227,5 +240,82 @@ void do_cmd_class_cmd(char *argv[], int argc) {
 	rbsdk_zw_class_cmd(mac, ep, class, cmd, data, len);
 }
 
+
+void do_cmd_zb_get_atr(char *argv[], int argc) {
+	if (argc < 5) {
+		log_debug("zgetatr <mac> <ep> <cluster> <attrid.");
+		return;
+	}
+	const char *mac =  argv[1];
+#if 0
+	int ep					= atoi(argv[2]); // endponint 1
+	int cluster			= atoi(argv[3]); // cluster, 
+	int attrid			= atoi(argv[4]); // attribute,
+#else
+	int ep;				sscanf(argv[2], "%02X", &ep);
+	int cluster;	sscanf(argv[3], "%04X", &cluster);
+	int attrid;		sscanf(argv[4], "%04X", &attrid);
+#endif
+	
+	int ret = rbsdk_get_attr((char *)mac, ep, cluster, attrid);
+	ret = ret;
+}
+void do_cmd_zb_set_atr(char *argv[], int argc) {
+	if (argc < 7) {
+		log_debug("getatr <mac> <ep> <cluster> <attrid> <atype> <data>");
+		return;
+	}
+	const char *mac =  argv[1];
+#if 0
+	int ep					= atoi(argv[2]); // endponint 1
+	int cluster			= atoi(argv[3]); // cluster
+	int attrid			= atoi(argv[4]); // attribute
+	int atype				= atoi(argv[5]); // attribute type
+#else
+	int ep;					sscanf(argv[2], "%02X", &ep);
+	int cluster;		sscanf(argv[3], "%04X", &cluster);
+	int attrid;			sscanf(argv[4], "%04X", &attrid);
+	int atype;			sscanf(argv[5], "%02X", &atype);
+#endif
+
+	char *datastr = argv[6];
+	char data[256];
+	int len = _hex_parse((unsigned char *)data, sizeof(data), datastr, 0);
+	if (len < 0) {
+		log_debug("getatr <mac> <ep> <cluster> <attrid> <atype> <data>");
+		return;
+	}
+	
+	int ret = rbsdk_set_attr((char *)mac, ep, cluster, attrid, atype, data, len);
+	ret = ret;
+}
+
+void do_cmd_zb_zcl_cmd(char *argv[], int argc) {
+	if (argc < 6) {
+		log_debug("zclcmd <mac> <ep> <cluster> <cmdid> <data>");
+		return;
+	}
+	const char *mac =  argv[1];
+#if 0
+	int ep					= atoi(argv[2]); // endponint 1
+	int cluster			= atoi(argv[3]); // cluster
+	int cmdid				= atoi(argv[4]);	 // cmdid
+#else
+	int ep;				sscanf(argv[2], "%02X", &ep);
+	int cluster;	sscanf(argv[3], "%04X", &cluster);
+	int cmdid;		sscanf(argv[4], "%02X", &cmdid);
+#endif
+
+	char *datastr = argv[5];
+	char data[256];
+	int len = _hex_parse((unsigned char *)data, sizeof(data), datastr, 0);
+	if (len < 0) {
+		log_debug("zclcmd <mac> <ep> <cluster> <cmdid> <data>");
+		return;
+	}
+	
+	int ret = rbsdk_zcl_cmd((char *)mac, ep, cluster, cmdid, data, len);
+	ret = ret;
+}
 
 
