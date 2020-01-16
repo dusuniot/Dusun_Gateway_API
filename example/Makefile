@@ -2,7 +2,7 @@ ROOTDIR=$(shell pwd)
 WORKDIR=$(ROOTDIR)/build
 VERSION=V1.0.3
 
-targets			+= test
+targets			+= Zigbee_test
 
 .PHONY: targets
 
